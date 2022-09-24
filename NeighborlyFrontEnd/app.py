@@ -2,17 +2,21 @@ import logging.config
 import os
 from flask import Flask, Blueprint, request, jsonify, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
-import settings
 import requests
 import json
 from feedgen.feed import FeedGenerator
 from flask import make_response
 from urllib.parse import urljoin
 from werkzeug.contrib.atom import AtomFeed
+from . import settings
+from datetime import datetime
 
 app = Flask(__name__)
 Bootstrap(app)
 
+@app.route('/hello')
+def index():
+    return "Hello World"
 
 
 def get_abs_url(url):
@@ -26,19 +30,22 @@ def feeds():
                     feed_url=request.url, url=request.url_root)
 
     response = requests.get(settings.API_URL + '/getAdvertisements')
-    posts = response.json()
+    advertisements = response.json()
+    return render_template("index.html", ads=advertisements)
+    '''
+    for advertisement in advertisements:
+        print('............'+ str(advertisement))  
+        print('............'+ str(advertisement['title']))  
+        #for key, value in advertisement.items():
+        #print("key,value: " + key + ", " + value)
+        feed.add(id=advertisement['_id'], title=advertisement["title"],
+                 content_type='html',
+                 description=advertisement["description"],
+                 price=advertisement["price"],
+                 updated=datetime.now())
 
-    for key, value in posts.items():
-        print("key,value: " + key + ", " + value)
-
-    #     feed.add(post.title,
-    #              content_type='html',
-    #              author= post.author_name,
-    #              url=get_abs_url(post.url),
-    #              updated=post.mod_date,
-    #              published=post.created_date)
-
-    # return feed.get_response()
+    return feed.get_response()
+    '''
 
 
 @app.route('/rss')
@@ -131,8 +138,10 @@ def delete_ad_request(id):
 
 # running app
 def main():
+    print('Inside main')
     print(' ----->>>> Flask Python Application running in development server')
-    app.run(host=settings.SERVER_HOST, port=settings.SERVER_PORT, debug=settings.FLASK_DEBUG)
+    #app.run(host=settings.SERVER_HOST, port=settings.SERVER_PORT, debug=settings.FLASK_DEBUG)
+    app.run(debug=True)
 
 
 if __name__ == '__main__':
